@@ -18,8 +18,8 @@ namespace tetris{
 		}
 	};
 	
-	coord dx[4] = {coord(-1, 0),coord( 0, 1),coord( 1, 0),coord( 0,-1)};
-	coord dy[4] = {coord( 0, 1),coord( 1, 0),coord( 0,-1),coord(-1, 0)};
+	coord dx[4] = {coord( 1, 0),coord( 0, 1),coord(-1, 0),coord( 0,-1)};
+	coord dy[4] = {coord( 0, 1),coord(-1, 0),coord( 0,-1),coord( 1, 0)};
 	
 	struct block{
 		std::vector<coord> v;//c[0] is Center
