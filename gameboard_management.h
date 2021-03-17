@@ -66,5 +66,9 @@ namespace tetris{
 				}
 			}
 		}
+		
+		int getBlkInfo(int x,int y){
+			return getNthLine(x)->col[y];
+		}
 	};
 }
