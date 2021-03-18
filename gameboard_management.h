@@ -2,6 +2,7 @@
 
 #include<vector>
 #include<memory>
+#include<algorithm>
 
 #include"blocks.h"
 
@@ -11,8 +12,8 @@ namespace tetris{
 		struct boardline{
 			int col[11];
 			boardline* nxt;
-			boardline(boardline* NXT=nullptr) : nxt(NXT) {
-				memset(col,-1,sizeof(col));
+			boardline(int k = -1,boardline* NXT=nullptr) : nxt(NXT) {
+				std::fill(col,col+11,k);
 			}
 		};
 		boardline bhead;
@@ -44,6 +45,15 @@ namespace tetris{
 			for(coord p:dir(blk[bKind],d)){
 				coord k = cen+p;
 				getNthLine(k.x)->col[k.y] = bKind;
+			}
+		}
+		
+		void addAttackLine(int n){
+			for(int i=0;i<n;i++){
+				boardline* p = bhead.nxt;
+				bhead.nxt = new boardline(8);
+				bhead.nxt->nxt = p;
+				p = bhead.nxt;
 			}
 		}
 		
