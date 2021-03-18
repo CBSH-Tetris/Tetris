@@ -5,6 +5,7 @@
 #include<algorithm>
 
 #include"blocks.h"
+#include"wndvisual.h"
 
 namespace tetris{
 	class gameboard{
@@ -17,13 +18,6 @@ namespace tetris{
 			}
 		};
 		boardline bhead;
-		boardline* getNthLine(int n){
-			boardline* p = &bhead;
-			for(int i=0;i<n;i++){
-				p = p->nxt;
-			}
-			return p;
-		}
 	public:
 		gameboard(){
 			boardline* p = &bhead;
@@ -39,6 +33,14 @@ namespace tetris{
 				delete p->nxt;
 				p->nxt = nnxt;
 			}
+		}
+		
+		boardline* getNthLine(int n){
+			boardline* p = &bhead;
+			for(int i=0;i<n;i++){
+				p = p->nxt;
+			}
+			return p;
 		}
 		
 		void add(coord cen, int bKind, int d){
@@ -81,4 +83,13 @@ namespace tetris{
 			return getNthLine(x)->col[y];
 		}
 	};
+	
+	void showGameboard(int bx,int by){
+		for(int i=1;i<=20;i++){
+			//gotoxy()
+			for(int j=1;j<=10;j++){
+				
+			}
+		}
+	}
 }
