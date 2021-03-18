@@ -3,13 +3,15 @@
 #include<vector>
 #include<memory>
 #include<algorithm>
+#include<stdio.h>
+#include<stdlib.h>
 
 #include"blocks.h"
 #include"wndvisual.h"
 
 namespace tetris{
 	class gameboard{
-	private:
+	public:
 		struct boardline{
 			int col[11];
 			boardline* nxt;
@@ -17,6 +19,7 @@ namespace tetris{
 				std::fill(col,col+11,k);
 			}
 		};
+	private:
 		boardline bhead;
 	public:
 		gameboard(){
@@ -50,13 +53,28 @@ namespace tetris{
 			}
 		}
 		
-		void addAttackLine(int n){
+		int addAttackLine(int n){
 			for(int i=0;i<n;i++){
 				boardline* p = bhead.nxt;
-				bhead.nxt = new boardline(8);
+				bhead.nxt = new boardline(7);
+				bhead.nxt->col[1+rand()%10] = -1;
 				bhead.nxt->nxt = p;
 				p = bhead.nxt;
 			}
+			for(int i=0;i<n;i++){
+				boardline* p = getNthLine(25+n-i);
+				bool flag = false;
+				for(int i=1;i<=10;i++){
+					if(p->col[i]!=-1){
+						flag = true;
+						break;
+					}
+				}
+				if(flag){
+					return 1;
+				}
+			}
+			return 0;
 		}
 		
 		void clear(){
@@ -84,12 +102,32 @@ namespace tetris{
 		}
 	};
 	
-	void showGameboard(int bx,int by){
+	void showGameboard(int bx,int by,gameboard& g){
+		gotoxy(bx,by);
+		txtCol(8,0);
+		wprintf(L"■■■■■■■■■■■■");
 		for(int i=1;i<=20;i++){
-			//gotoxy()
+			gotoxy(bx,by+i);
+			txtCol(8,0);
+			wprintf(L"■");
+			gameboard::boardline* p = g.getNthLine(21-i);
 			for(int j=1;j<=10;j++){
-				
+				txtCol((p->col[j]+9)%9,0);
+				if(p->col[j]==-1){
+					wprintf(L"  ");
+				}
+				else if(p->col[j]==7){
+					wprintf(L"▩");
+				}
+				else{
+					wprintf(L"▣");
+				}
 			}
+			txtCol(8,0);
+			wprintf(L"■");
 		}
+		gotoxy(bx,by+21);
+		txtCol(8,0);
+		wprintf(L"■■■■■■■■■■■■");
 	}
 }
