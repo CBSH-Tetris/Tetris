@@ -1,3 +1,7 @@
+#pragma once
+
+#include "server.h"
+
 void joinRoom() {
     return;
 }
