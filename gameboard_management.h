@@ -79,11 +79,11 @@ namespace tetris {
 			return true;
 		}
 
-		int addAttackLine(int n) {
+		int addAttackLine(int n, int x) {
 			for(int i = 0; i < n; i++) {
 				boardline* p = bhead.nxt;
 				bhead.nxt = new boardline(7);
-				bhead.nxt->col[1 + rand() % 10] = -1;
+				bhead.nxt->col[x] = -1;
 				bhead.nxt->nxt = p;
 				p = bhead.nxt;
 			}

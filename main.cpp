@@ -3,12 +3,14 @@
 #include "wndvisual.h"
 #include "menu.h"
 #include "room.h"
+#include "server.h"
 #include <cstdio>
 #include <thread>
 #include <ctime>
 #include <sys/timeb.h>
 #include <random>
 #include <conio.h>
+#include <iostream>
 
 #define UP 72
 #define DOWN 80
@@ -21,11 +23,15 @@ std::random_device rd;
 std::mt19937 gen(rd());
 std::uniform_int_distribution<int> dis(0, 6);
 
+std::random_device rd3;
+std::mt19937 gen3(rd3());
+std::uniform_int_distribution<int> dis3(1, 10);
+
 struct Player {
 	tetris::gameboard board;
 	int y = 18, x = 5; // position of new block
 	int bK, bD;
-	bool moveEnd = true, moved = true;
+	bool moved = false;
 
 	void createBlock() {
 		y = 18, x = 5;
@@ -35,25 +41,64 @@ struct Player {
 };
 
 Player P1, P2;
+Player *slf, *otr;
+
 bool P1_end = false, P2_end = false;
-bool moved = false;
+int prevT = -600;
+int prevT2 = -50;
 
 DWORD GetTickCount(void);
 
+string IP = "127.0.0.1";
+
 int main(void){
-	int xx, yy, lr;
+	cin >> IP;
+
 	wndSize(32, 70);
+	CursorView(0);
+	int xx, yy, lr;
+
+	gotoxy(0, 0);
+	printf("\n");
+	SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), dis2(gen2));
+	printf("                         @@@@    @@@@    @@@@    @   @\n");
+	SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), dis2(gen2));
+	printf("                       @        @   @   @       @   @\n");
+	SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), dis2(gen2));
+	printf("                      @        @@@@     @@@    @@@@@\n");
+	SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), dis2(gen2));
+	printf("                     @        @   @       @   @   @\n");
+	SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), dis2(gen2));
+	printf("                     @@@@    @@@@     @@@@   @   @\n\n");
+	SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), dis2(gen2));
+	printf("                @@@@@   @@@@@   @@@@@    @@@@@   @    @@@@   \n");
+	SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), dis2(gen2));
+	printf("                 @     @         @      @   @   @    @              \n");
+	SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), dis2(gen2));
+	printf("                @     @@@@@     @      @@@@    @     @@@            \n");
+	SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), dis2(gen2));
+	printf("               @     @         @      @  @    @        @            \n");
+	SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), dis2(gen2));
+	printf("              @     @@@@@     @      @   @   @     @@@@             \n\n");
+	SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 15);
+
 	mainMenu();
 
 	while(1) {
 		GetMouseState(&xx, &yy, &lr);
 		if(lr == 1) {
 			if(13 <= yy && yy <= 15 && 24 <= xx && xx <= 44) { // CREATE
-				createRoom();
+				create();
+    			server::makeConnection_s();
+				slf = &P1;
+				otr = &P2;
 				break;
 			}
 			if(18 <= yy && yy <= 20 && 24 <= xx && xx <= 44) { // JOIN
-				joinRoom();
+				join();
+    			server::makeConnection_c(IP);
+				slf = &P2;
+				otr = &P1;
 				break;
 			}
 			if(23 <= yy && yy <= 25 && 24 <= xx && xx <= 44) { // CONTROLS
@@ -71,48 +116,14 @@ int main(void){
 	
 
 	init();
-	tetris::showGameboard(0, 5, P1.board);
-	tetris::showGameboard(30, 5, P2.board);
-/*
-	std::thread dropBlock(
-		[]() {
-			P1.createBlock();
-			P2.createBlock();
-			bool moveEnd = true;
-			int prevT = -1000;
-			while(!P1_end & !P2_end) {
-				if(GetTickCount() >= prevT + 1000) {
-					prevT = GetTickCount();
 
-					P1.board.del({P1.y, P1.x}, P1.bK, P1.bD);
-					if(P1.board.canMove({P1.y - 1, P1.x}, P1.bK, P1.bD)) {
-						P1.board.add({P1.y -= 1, P1.x}, P1.bK, P1.bD);
-					}
-					else {
-						P1.board.add({P1.y, P1.x}, P1.bK, P1.bD);
-						P1.createBlock();
-					}
-
-					P2.board.del({P2.y, P2.x}, P2.bK, P2.bD);
-					if(P2.board.canMove({P2.y - 1, P2.x}, P2.bK, P2.bD)) {
-						P2.board.add({P2.y -= 1, P2.x}, P2.bK, P2.bD);
-					}
-					else {
-						P2.board.add({P2.y, P2.x}, P2.bK, P2.bD);
-						P2.createBlock();
-					}
-					P1.moved = P2.moved = true;
-				}
-			}
-		}
-	);
-*/
+	tetris::showGameboard(0, 5, slf->board);
+	tetris::showGameboard(30, 5, otr->board);
 
 	std::thread moveBlock(
 		[]() {
-			int prevT2 = -50;
 			char c;
-			while(!P1_end & !P2_end) {
+			while(1) {
 				if (GetTickCount() >= prevT2 + 200) {
 						prevT2 = GetTickCount();
 						c = _getch();
@@ -120,34 +131,32 @@ int main(void){
 							c = _getch();
 							switch (c) {
 								case LEFT:
-									P1.board.del({P1.y, P1.x}, P1.bK, P1.bD);
-									if(P1.board.canMove({P1.y, P1.x - 1}, P1.bK, P1.bD)) {
-										P1.board.add({P1.y, P1.x -= 1}, P1.bK, P1.bD);
-										P1.moved = true;
+									slf->board.del({slf->y, slf->x}, slf->bK, slf->bD);
+									if(slf->board.canMove({slf->y, slf->x - 1}, slf->bK, slf->bD)) {
+										slf->board.add({slf->y, slf->x -= 1}, slf->bK, slf->bD);
+										slf->moved = true;
 									}
 									break;
 								case RIGHT:
-									P1.board.del({P1.y, P1.x}, P1.bK, P1.bD);
-									if(P1.board.canMove({P1.y, P1.x + 1}, P1.bK, P1.bD)) {
-										P1.board.add({P1.y, P1.x += 1}, P1.bK, P1.bD);
-										P1.moved = true;
+									slf->board.del({slf->y, slf->x}, slf->bK, slf->bD);
+									if(slf->board.canMove({slf->y, slf->x + 1}, slf->bK, slf->bD)) {
+										slf->board.add({slf->y, slf->x += 1}, slf->bK, slf->bD);
+										slf->moved = true;
 									}
 									break;
 								case UP:
-									P1.board.del({P1.y, P1.x}, P1.bK, P1.bD);
-									if(P1.board.canMove({P1.y, P1.x}, P1.bK, (P1.bD + 1) % 4)) {
-										P1.bD = (P1.bD + 1) % 4;;
-										P1.board.add({P1.y, P1.x}, P1.bK, P1.bD);
-										P1.moved = true;
+									slf->board.del({slf->y, slf->x}, slf->bK, slf->bD);
+									if(slf->board.canMove({slf->y, slf->x}, slf->bK, (slf->bD + 1) % 4)) {
+										slf->bD = (slf->bD + 1) % 4;
+										slf->board.add({slf->y, slf->x}, slf->bK, slf->bD);
+										slf->moved = true;
 									}
 									break;
 								case DOWN:
-									P1.board.del({P1.y, P1.x}, P1.bK, P1.bD);
-									while(P1.board.canMove({P1.y - 1, P1.x}, P1.bK, P1.bD)) {
-										P1.y--;
-									}
-									P1.board.add({P1.y, P1.x}, P1.bK, P1.bD);
-									P1.moved = true;
+									slf->board.del({slf->y, slf->x}, slf->bK, slf->bD);
+									while(slf->board.canMove({slf->y - 1, slf->x}, slf->bK, slf->bD))
+										slf->y--;
+									slf->board.add({slf->y, slf->x}, slf->bK, slf->bD);
 									break;
 						}
 					}
@@ -156,41 +165,67 @@ int main(void){
 		}
 	);
 
-	P1.createBlock();
-	P2.createBlock();
-	bool moveEnd = true;
-	int prevT = -600;
+	std::thread rcv(
+		[]() {
+			while(1) {
+				if(GetTickCount() < prevT + 600 && GetTickCount() >= prevT2 + 200) {
+					string s = server::recvTxt();
+					if(s.size()) {
+						if(s[0] == 'C') { // clear
+							int lines = otr->board.clear();
+							slf->board.addAttackLine(lines, s[1] - '0');
+							otr->moved = slf->moved = true;
+							
+						}
+						else { // drop
+							int nums[4] = {}, i = 0;
+							for(int j = 0; j < s.size(); j++) {
+								if(s[j] == ' ')
+									i++;
+								else
+									nums[i] = nums[i] * 10 + s[j] - '0';
+							}
+							otr->board.add({nums[0], nums[1]}, nums[2], nums[3]);
+							otr->moved = true;
+						}
+					}
+					Sleep(200);
+				}
+			}
+		}
+	);
+
 	while(!P1_end & !P2_end) {
 		if(GetTickCount() >= prevT + 600) {
 			prevT = GetTickCount();
-			P1.board.del({P1.y, P1.x}, P1.bK, P1.bD);
-			if(P1.board.canMove({P1.y - 1, P1.x}, P1.bK, P1.bD)) {
-				P1.board.add({P1.y -= 1, P1.x}, P1.bK, P1.bD);
+			slf->board.del({slf->y, slf->x}, slf->bK, slf->bD);
+			if(slf->board.canMove({slf->y - 1, slf->x}, slf->bK, slf->bD)) {
+				slf->board.add({slf->y -= 1, slf->x}, slf->bK, slf->bD);
 			}
 			else {
-				P1.board.add({P1.y, P1.x}, P1.bK, P1.bD);
-				P1.createBlock();
+				slf->board.add({slf->y, slf->x}, slf->bK, slf->bD);
+				char send[999];
+				sprintf(send, "%d %d %d %d ", slf->y, slf->x, slf->bK, slf->bD);
+				server::sendTxt(send);
+				slf->createBlock();
 			}
-
-			P2.board.del({P2.y, P2.x}, P2.bK, P2.bD);
-			if(P2.board.canMove({P2.y - 1, P2.x}, P2.bK, P2.bD)) {
-				P2.board.add({P2.y -= 1, P2.x}, P2.bK, P2.bD);
-			}
-			else {
-				P2.board.add({P2.y, P2.x}, P2.bK, P2.bD);
-				P2.createBlock();
-			}
-			P1.moved = P2.moved = true;
+			slf->moved = true;
 		}
-		if(P1.moved) {
-			P1.moved = false;
-			P1_end = P1.board.addAttackLine(P2.board.clear());
-			tetris::showGameboard(0, 5, P1.board);
+		if(slf->moved) {
+			slf->moved = false;
+			int lines = slf->board.clear();
+			if(lines) {
+				int x = dis3(gen3);
+				char send[999];
+				sprintf(send, "C%d", x);
+				server::sendTxt(send);
+				otr->board.addAttackLine(lines, x);
+			}
+			tetris::showGameboard(0, 5, slf->board);
 		}
-		if(P2.moved) {
-			P2.moved = false;
-			P2_end = P2.board.addAttackLine(P1.board.clear());
-			tetris::showGameboard(30, 5, P2.board);
+		if(otr->moved) {
+			otr->moved = false;
+			tetris::showGameboard(30, 5, otr->board);
 		}
 	}
 
