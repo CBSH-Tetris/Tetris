@@ -46,11 +46,13 @@ namespace tetris {
 			return p;
 		}
 		
-		void add(coord cen, int bKind, int d) {
+		int add(coord cen, int bKind, int d) {
 			for(coord p : dir(blk[bKind], d)) {
 				coord k = cen + p;
+				if(k.x>20)return 1;
 				getNthLine(k.x)->col[k.y] = bKind;
 			}
+			return 0;
 		}
 		
 		void del(coord cen, int bKind, int d) {
@@ -131,26 +133,26 @@ namespace tetris {
 	void showGameboard(int bx, int by, gameboard& g) {
 		gotoxy(bx, by);
 		GRAY; wprintf(L"■■■■■■■■■■■■");
-		for(int i = 1; i <= 20; i++) {
+		for(int i = 1; i <= 25; i++) {
 			gotoxy(bx, by + i);
 			GRAY; wprintf(L"■");
-			gameboard::boardline* p = g.getNthLine(21 - i);
+			gameboard::boardline* p = g.getNthLine(26 - i);
 			for(int j = 1; j <= 10; j++) {
 				switch(p->col[j]) {
-					case E: WHITE; wprintf(L"  "); break;
-					case I: SKYBLUE; wprintf(L"▣"); break;
-					case L: BLUE; wprintf(L"▣"); break;
-					case J: ORANGE; wprintf(L"▣"); break;
-					case O: YELLOW; wprintf(L"▣"); break;
-					case S: GREEN; wprintf(L"▣"); break;
-					case T: PINK; wprintf(L"▣"); break;
-					case Z: RED; wprintf(L"▣"); break;
-					case G: GRAY; wprintf(L"▩"); break;
+					case E: txtColor(COL_WHITE  ,i<=6?COL_VIOLET:COL_BLACK); wprintf(L"  "); break;
+					case I: txtColor(COL_SKYBLUE,i<=6?COL_VIOLET:COL_BLACK); wprintf(L"▣"); break;
+					case L: txtColor(COL_BLUE   ,i<=6?COL_VIOLET:COL_BLACK); wprintf(L"▣"); break;
+					case J: txtColor(COL_ORANGE ,i<=6?COL_VIOLET:COL_BLACK); wprintf(L"▣"); break;
+					case O: txtColor(COL_YELLOW ,i<=6?COL_VIOLET:COL_BLACK); wprintf(L"▣"); break;
+					case S: txtColor(COL_GREEN  ,i<=6?COL_VIOLET:COL_BLACK); wprintf(L"▣"); break;
+					case T: txtColor(COL_PINK   ,i<=6?COL_VIOLET:COL_BLACK); wprintf(L"▣"); break;
+					case Z: txtColor(COL_RED    ,i<=6?COL_VIOLET:COL_BLACK); wprintf(L"▣"); break;
+					case G: txtColor(COL_GRAY   ,i<=6?COL_VIOLET:COL_BLACK); wprintf(L"▩"); break;
 				}
 			}
 			GRAY; wprintf(L"■");
 		}
-		gotoxy(bx, by + 21);
+		gotoxy(bx, by + 26);
 		GRAY; wprintf(L"■■■■■■■■■■■■");
 	}
 }

@@ -135,9 +135,9 @@ int main(void){
 									break;
 								case UP:
 									P1.board.del({P1.y, P1.x}, P1.bK, P1.bD);
-									if(P1.board.canMove({P1.y, P1.x - 1}, P1.bK, (P1.bD + 1) % 4)) {
+									if(P1.board.canMove({P1.y, P1.x}, P1.bK, (P1.bD + 1) % 4)) {
 										P1.bD = (P1.bD + 1) % 4;;
-										P1.board.add({P1.y, P1.x -= 1}, P1.bK, P1.bD);
+										P1.board.add({P1.y, P1.x}, P1.bK, P1.bD);
 										P1.moved = true;
 									}
 									break;
