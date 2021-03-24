@@ -55,7 +55,7 @@ int main(void){
 	cin >> IP;
 
 	wndSize(32, 70);
-	CursorView(0);
+	//CursorView(0);
 	int xx, yy, lr;
 
 	gotoxy(0, 0);

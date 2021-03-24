@@ -39,7 +39,7 @@ namespace server{
 		}
 		int x = bind(s,reinterpret_cast<SOCKADDR *>(&servAddr),sizeof(servAddr));
 		if(x==SOCKET_ERROR){
-			showError("Binding Failed"<<WSAGetLastError());
+			showError("Binding Failed",WSAGetLastError());
 			WSACleanup();
 			return 0;
 		}
